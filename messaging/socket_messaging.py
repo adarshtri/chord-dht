@@ -7,9 +7,7 @@ from constants.messaging_constants import MessagingConstants
 __all__ = ["ChordSocketServerThreadManager", "ChordSocketClient"]
 
 
-class ChordSocketServer(socketserver.StreamRequestHandler):
-
-    open_server = None
+class ChordSocketServerHandler(socketserver.StreamRequestHandler, socketserver.ThreadingMixIn):
 
     """
     This is a singleton class with not __init__ method. Can't have multiple server instances.
@@ -30,28 +28,9 @@ class ChordSocketServer(socketserver.StreamRequestHandler):
         print("{} wrote:".format(self.client_address[0]))
         print(data)
 
-    @staticmethod
-    def start_server():
 
-        """
-        Start the socket server to listen on the specified port.
-        Sets the attribute "open_server" of the class which is used to later close the server on stop_server() method.
-        :return:
-        """
-        if not ChordSocketServer.open_server:
-            with socketserver.TCPServer((MessagingConstants.SERVER_HOST, MessagingConstants.SERVER_PORT), ChordSocketServer) as server:
-                ChordSocketServer.open_server = server
-                server.serve_forever()
-
-    @staticmethod
-    def stop_server():
-
-        """
-        Stops the running server for this instance.
-        :return: None
-        """
-        if ChordSocketServer.open_server:
-            ChordSocketServer.open_server.server_close()
+class ThreadedChordTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+    pass
 
 
 class ChordSocketClient(object):
@@ -77,18 +56,35 @@ class ChordSocketClient(object):
 
 class ChordSocketServerThreadManager(object):
 
+    server = None
     server_thread = None
 
     @staticmethod
-    def start_socket_server():
+    def start_server():
 
-        if not ChordSocketServerThreadManager.server_thread:
-            ChordSocketServerThreadManager.server_thread = threading.Thread(target=ChordSocketServer.start_server, args=())
+        """
+        Start the socket server to listen on the specified port.
+        Sets the attribute "open_server" of the class which is used to later close the server on stop_server() method.
+        :return:
+        """
+        if not ChordSocketServerThreadManager.server:
+            ChordSocketServerThreadManager.server = \
+                ThreadedChordTCPServer((MessagingConstants.SERVER_HOST, MessagingConstants.SERVER_PORT),
+                                       ChordSocketServerHandler)
+
+            ChordSocketServerThreadManager.server_thread = \
+                threading.Thread(target=ChordSocketServerThreadManager.server.serve_forever)
+
+            ChordSocketServerThreadManager.server_thread.daemon = True
             ChordSocketServerThreadManager.server_thread.start()
 
     @staticmethod
-    def stop_socket_server():
+    def stop_server():
 
-        if ChordSocketServerThreadManager.server_thread:
-            ChordSocketServer.stop_server()
-            ChordSocketServerThreadManager.server_thread.join()
+        """
+        Stops the running server for this instance.
+        :return: None
+        """
+        if ChordSocketServerThreadManager.server and ChordSocketServerThreadManager.server_thread:
+            ChordSocketServerThreadManager.server.shutdown()
+            ChordSocketServerThreadManager.server.server_close()
