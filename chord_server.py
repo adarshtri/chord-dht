@@ -1,16 +1,16 @@
 import os
 import sys
-from messaging.socket_messaging import ChordSocketServerThreadManager
+from messaging.rpc import XMLRPCChordServerManager
 from utilities.configuration import ConfigurationManager
 from constants.configuration_constants import ConfigurationConstants
 
 
 def start_chord_node():
-    ChordSocketServerThreadManager.start_server()
+    XMLRPCChordServerManager.start_server()
 
 
 def stop_chord_node():
-    ChordSocketServerThreadManager.stop_server()
+    XMLRPCChordServerManager.stop_server()
 
 
 if __name__ == "__main__":
