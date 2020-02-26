@@ -19,6 +19,12 @@ class Configuration(object):
     def get_socket_port(self):
         return self._config[ConfigurationConstants.CHORD_SOCKET_PORT]
 
+    def get_chord_server_ip(self):
+        return self._config[ConfigurationConstants.CHORD_SERVER_IP]
+
+    def get_m_bits(self):
+        return self._config[ConfigurationConstants.CHORD_M_BITS]
+
     def _set_config(self):
 
         try:

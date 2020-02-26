@@ -27,14 +27,14 @@ class XMLRPCChordServerManager(object):
     server_thread = None
 
     @staticmethod
-    def start_server():
+    def start_server(chord_node):
 
         ip = ConfigurationManager.get_configuration().get_advertised_ip()
         port = ConfigurationManager.get_configuration().get_socket_port()
 
         if not XMLRPCChordServerManager.server and not XMLRPCChordServerManager.server_thread:
             XMLRPCChordServerManager.server = AsyncXMLRPCServer((ip, port), ChordRPCRequestHandler)
-            XMLRPCChordServerManager.server.register_instance(Node(z=10))
+            XMLRPCChordServerManager.server.register_instance(chord_node)
             XMLRPCChordServerManager.server_thread = \
                 threading.Thread(target=XMLRPCChordServerManager.server.serve_forever)
             XMLRPCChordServerManager.server_thread.daemon = True

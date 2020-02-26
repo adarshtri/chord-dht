@@ -1,5 +1,6 @@
 import hashlib
 
+
 class Consistent_Hashing:
 	def get_hash(value):
 		return hashlib.sha1(value.encode()).hexdigest()
