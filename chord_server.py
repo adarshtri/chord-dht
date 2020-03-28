@@ -36,12 +36,15 @@ if __name__ == "__main__":
     ConfigurationManager.reset_configuration()
 
     server_ip = ConfigurationManager.get_configuration().get_chord_server_ip()
-    server_id = Consistent_Hashing.get_modulo_hash(server_ip)
+    server_port = ConfigurationManager.get_configuration().get_socket_port()
+    server_id = Consistent_Hashing.get_modulo_hash(server_ip + ":" + str(server_port))
     node = Node(node_id=server_id,node_ip=server_ip, bootstrap_node=bootstrap_server)
 
     start_chord_node(node)
+    node.join()
 
     while True:
+        print("Running with server id : " + str(server_id))
         console_input = input("1. \"stop\" to shutdown chord node\n2. \"reset\" to reload new configuration\n"
                               "Enter your input:")
         if console_input.strip() == "stop":
