@@ -342,7 +342,16 @@ class Node(object):
             client = xmlrpc.client.ServerProxy('http://' + p[1] + '/RPC2')
             client.update_finger_table((self.get_node_id(), self.get_connection_string()), i)
 
-    def update_finger_table(self, s, i):
+    def update_finger_table(self, s, i, for_leave=False):
+
+        if for_leave:
+            finger = Finger(ip=s[1].split(":")[0], identifier=s[0], port=s[1].split(":")[1], finger_number=i + 1,
+                            my_chord_server_node_id=self.get_node_id())
+            finger.set_node(s[0])
+            finger.set_xml_client(xmlrpc.client.ServerProxy('http://' + s[1] + '/RPC2'))
+            self._finger_table.update_finger_at_ith_position(i, finger)
+
+            return
 
         if self.in_bracket(s[0], [self.get_node_id(), self._finger_table.get_finger_ith(i).node], type='l'):
 
@@ -419,6 +428,12 @@ class Node(object):
                 return self._finger_table.get_finger_ith(i).node, \
                        self._finger_table.get_finger_ith(i).get_connection_string()
         return self.get_node_id(), self.get_connection_string()
+
+    def leave(self):
+
+        self.get_xml_client(self.get_predecessor()).set_successor(self.get_successor())
+        self.get_xml_client(self.get_successor()).set_predecessor(self.get_predecessor())
+        self.get_xml_client(self.get_predecessor()).update_finger_table(self.get_successor(), 0, True)
 
     def in_bracket(self, num, limits, type='c'):
 

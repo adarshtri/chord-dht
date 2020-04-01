@@ -49,6 +49,8 @@ if __name__ == "__main__":
                               "3. \"pred\" Get predecessor\n4. \"succ\" Get successor\n5. \"ftable\" Finger Table\n"
                               "Enter your input:")
         if console_input.strip() == "stop":
+            print(node)
+            node.leave()
             stop_chord_node()
             break
 
