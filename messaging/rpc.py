@@ -33,7 +33,8 @@ class XMLRPCChordServerManager(object):
         port = ConfigurationManager.get_configuration().get_socket_port()
 
         if not XMLRPCChordServerManager.server and not XMLRPCChordServerManager.server_thread:
-            XMLRPCChordServerManager.server = AsyncXMLRPCServer((ip, port), ChordRPCRequestHandler)
+            XMLRPCChordServerManager.server = AsyncXMLRPCServer((ip, port), ChordRPCRequestHandler, allow_none=True,
+                                                                logRequests=False)
             XMLRPCChordServerManager.server.register_instance(chord_node)
             XMLRPCChordServerManager.server_thread = \
                 threading.Thread(target=XMLRPCChordServerManager.server.serve_forever)

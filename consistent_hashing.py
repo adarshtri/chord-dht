@@ -1,5 +1,5 @@
 import hashlib
-
+from utilities.configuration import ConfigurationManager
 
 class Consistent_Hashing:
 	def get_hash(value):
