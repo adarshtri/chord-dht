@@ -2,5 +2,5 @@
   "ip": "localhost",
   "advertised_ip": "",
   "socket_port": 4001,
-  "m_bits": 4
+  "m_bits": 10
 }

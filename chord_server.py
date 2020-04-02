@@ -47,9 +47,9 @@ if __name__ == "__main__":
         print("\n\nRunning with server id : " + str(server_id))
         console_input = input("1. \"stop\" to shutdown chord node\n2. \"reset\" to reload new configuration\n"
                               "3. \"pred\" Get predecessor\n4. \"succ\" Get successor\n5. \"ftable\" Finger Table\n"
+                              "6. \"store\" Store\n"
                               "Enter your input:")
         if console_input.strip() == "stop":
-            print(node)
             node.leave()
             stop_chord_node()
             break
@@ -65,3 +65,6 @@ if __name__ == "__main__":
 
         if console_input.strip() == "ftable":
             print(str(node.get_finger_table()))
+
+        if console_input.strip() == "store":
+            print(node.get_store())

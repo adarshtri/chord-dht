@@ -2,9 +2,10 @@ from utilities.configuration import ConfigurationManager
 import xmlrpc.client
 import traceback
 import inspect
+import consistent_hashing
 
 debug = True
-function_debug = False
+function_debug = True
 
 
 class Finger(object):
@@ -184,7 +185,7 @@ class Node(object):
 
         self._set_default_node_parameters()
 
-        #self._join()
+        self._store = {}
 
     def _set_default_node_parameters(self) -> None:
 
@@ -529,3 +530,40 @@ class Node(object):
             return False
 
         return False
+
+    def store(self, key):
+        key = consistent_hashing.Consistent_Hashing.get_modulo_hash(key, self._config.get_m_bits())
+        return (self.get_xml_client(self.find_successor(key))).set_key(key)
+
+    def get(self, key):
+        key = consistent_hashing.Consistent_Hashing.get_modulo_hash(key, self._config.get_m_bits())
+        return (self.get_xml_client(self.find_successor(key))).get_key(key)
+
+    def delete(self, key):
+        key = consistent_hashing.Consistent_Hashing.get_modulo_hash(key, self._config.get_m_bits())
+        return (self.get_xml_client(self.find_successor(key))).delete_key(key)
+
+    def set_key(self, key):
+        print(key)
+        self._store[key] = True
+        return self.get_connection_string()
+
+    def get_key(self, key):
+
+        print(key)
+
+        if key in self._store:
+            return self.get_connection_string()
+        return None
+
+    def delete_key(self, key):
+
+        print(key)
+
+        if key in self._store:
+            del self._store[key]
+            return self.get_connection_string()
+        return None
+
+    def get_store(self):
+        return self._store
