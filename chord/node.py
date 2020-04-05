@@ -3,6 +3,7 @@ import xmlrpc.client
 import traceback
 import inspect
 import consistent_hashing
+import ast
 
 debug = True
 function_debug = True
@@ -277,6 +278,8 @@ class Node(object):
                     (self.get_node_id(), self.get_connection_string()))
                 (self.get_xml_client(self.get_predecessor())).set_successor(
                     (self.get_node_id(), self.get_connection_string()))
+
+                self.initialize_store()
 
                 # move keys in (predecessor, n] from successor
             except Exception as e:
@@ -567,3 +570,22 @@ class Node(object):
 
     def get_store(self):
         return self._store
+
+    def initialize_store(self):
+        self._store = ast.literal_eval(self.get_xml_client(self.get_successor()).get_transfer_data(self.get_node_id()))
+
+    def get_transfer_data(self, node_id):
+
+        transfer_data = {}
+        keys_to_be_deleted = []
+
+        for key in self._store:
+            print(node_id, self.get_node_id())
+            if self.in_bracket(key, [self.get_node_id(), node_id], 'o'):
+                transfer_data[key] = True
+                keys_to_be_deleted.append(key)
+
+        for key in keys_to_be_deleted:
+            del self._store[key]
+
+        return str(transfer_data)
