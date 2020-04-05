@@ -438,6 +438,7 @@ class Node(object):
         self.get_xml_client(self.get_predecessor()).set_successor(self.get_successor())
         self.get_xml_client(self.get_successor()).set_predecessor(self.get_predecessor())
         self.get_xml_client(self.get_predecessor()).update_finger_table(self.get_successor(), 0, True)
+        self.transfer_before_leave()
 
     def in_bracket(self, num, limits, type='c'):
 
@@ -589,3 +590,13 @@ class Node(object):
             del self._store[key]
 
         return str(transfer_data)
+
+    def transfer_before_leave(self):
+        self.get_xml_client(self.get_successor()).receive_keys_before_leave(str(self._store))
+
+    def receive_keys_before_leave(self, store):
+
+        store = ast.literal_eval(store)
+
+        for key in store:
+            self._store[key] = True
