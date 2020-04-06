@@ -1,6 +1,6 @@
 {
   "ip": "localhost",
   "advertised_ip": "",
-  "socket_port": 4006,
+  "socket_port": 5006,
   "m_bits": 10
 }

@@ -357,6 +357,7 @@ class Node(object):
             if debug:
                 print("Predecessor of " + str(Finger.go_back_n(self.get_node_id(), 2**(i))) + " is : " + str(p) + ": " + str(i))
             client = xmlrpc.client.ServerProxy('http://' + p[1] + '/RPC2')
+
             client.update_finger_table((self.get_node_id(), self.get_connection_string()), i)
 
     def update_finger_table(self, s, i, for_leave=False):
@@ -616,3 +617,6 @@ class Node(object):
 
         for key in store:
             self._store[key] = True
+
+    def stabilize(self):
+        print("Stabilization called on {}.", self.get_node_id())

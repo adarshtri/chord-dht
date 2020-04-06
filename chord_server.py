@@ -5,6 +5,16 @@ from utilities.configuration import ConfigurationManager
 from constants.configuration_constants import ConfigurationConstants
 from chord.node import Node
 from consistent_hashing import Consistent_Hashing
+import sched
+import time
+import threading
+
+scheduler = sched.scheduler(time.time, time.sleep)
+
+
+def stabilize_call(chord_node: Node) -> None:
+    chord_node.stabilize()
+    scheduler.enter(5, 1, stabilize_call, (chord_node,))
 
 
 def start_chord_node(chord_node):
@@ -42,8 +52,12 @@ if __name__ == "__main__":
 
     start_chord_node(node)
     node.join()
+    scheduler.enter(5, 1, stabilize_call, (node,))
+    stabilization_thread = threading.Thread(target=scheduler.run, args=(True,))
+    stabilization_thread.start()
 
     while True:
+
         print("\n\nRunning with server id : " + str(server_id))
         console_input = input("1. \"stop\" to shutdown chord node\n2. \"reset\" to reload new configuration\n"
                               "3. \"pred\" Get predecessor\n4. \"succ\" Get successor\n5. \"ftable\" Finger Table\n"
@@ -52,6 +66,13 @@ if __name__ == "__main__":
         if console_input.strip() == "stop":
             node.leave()
             stop_chord_node()
+            while True:
+                try:
+                    scheduler.cancel(scheduler.queue[0])
+                    stabilization_thread.join()
+                    break
+                except:
+                    continue
             break
 
         if console_input.strip() == "reset":
