@@ -9,7 +9,7 @@ from random import randrange
 i = "localhost:4005"
 i = i.strip()
 
-client = ChordClient(bootstrap_server="localhost:4001")
+client = ChordClient(bootstrap_server="152.7.99.157:4000")
 
 keys = []
 
@@ -20,7 +20,7 @@ a = a.split(" ")
 for i, aa in enumerate(a):
     if i % 100 == 0:
         print(i)
-    client.store(aa)
+    print(client.get(aa))
 
 # while True:
 #     ip = input("get / put / del ? ")

@@ -5,8 +5,8 @@ import inspect
 import consistent_hashing
 import ast
 
-debug = True
-function_debug = True
+debug = False
+function_debug = False
 
 
 class Finger(object):
@@ -177,6 +177,8 @@ class Node(object):
         self._bootstrap_server = bootstrap_node
         self._config = ConfigurationManager.get_configuration()
         self._finger_table = FingerTable(size=self._config.get_m_bits())
+        self.predecessor = None
+        self.successor = None
 
         if debug:
             if not bootstrap_node:
@@ -265,7 +267,9 @@ class Node(object):
                 if debug:
                     print("My predecessor is: " + str(self.get_predecessor()))
 
+                #self.set_predecessor(nprime.find_predecessor(self.get_node_id()))
                 self.set_successor(self.get_xml_client(self.get_predecessor()).get_successor())
+                #self.set_successor(self.get_xml_client(self.get_predecessor()).get_successor())
                     #set_successor((self.get_node_id(), self.get_connection_string()), True)
 
                 self._init_finger_table(nprime)
@@ -273,6 +277,8 @@ class Node(object):
 
                 #(self.get_xml_client(self.get_predecessor())).set_successor(
                  #   (self.get_node_id(), self.get_connection_string()))
+
+
 
                 (self.get_xml_client(self.get_successor())).set_predecessor(
                     (self.get_node_id(), self.get_connection_string()))
@@ -317,15 +323,18 @@ class Node(object):
 
         for i in range(self._config.get_m_bits()-1):
 
-            print(str(self._finger_table))
+            if debug:
+                print(str(self._finger_table))
+
+            print(i, Finger.i_start(self.get_node_id(), i+2), self.get_node_id(), self._finger_table.get_finger_ith(i).node)
 
             if self.in_bracket(Finger.i_start(self.get_node_id(), i+2),
                                [self.get_node_id(), self._finger_table.get_finger_ith(i).node],
                                type='l'):
+
                 finger = self._finger_table.get_finger_ith(i)
                 new_finger = finger.create_copy(my_chord_server_id=self.get_node_id())
                 new_finger.set_finger_number(i+2)
-                #new_finger.set_node(self.find_successor(finger.node)[0])
                 new_finger.set_node(finger.node)
 
                 self._finger_table.update_finger_at_ith_position(i+1, new_finger)
@@ -340,7 +349,11 @@ class Node(object):
     def _update_others(self):
 
         for i in range(self._config.get_m_bits()):
+
             p = self.find_predecessor(Finger.go_back_n(self.get_node_id(), 2**(i)))
+
+            print(Finger.go_back_n(self.get_node_id(), 2 ** (i)), p)
+
             if debug:
                 print("Predecessor of " + str(Finger.go_back_n(self.get_node_id(), 2**(i))) + " is : " + str(p) + ": " + str(i))
             client = xmlrpc.client.ServerProxy('http://' + p[1] + '/RPC2')
@@ -357,7 +370,7 @@ class Node(object):
 
             return
 
-        if self.in_bracket(s[0], [self.get_node_id(), self._finger_table.get_finger_ith(i).node], type='l'):
+        if s[0] != self.get_node_id() and self.in_bracket(s[0], [self.get_node_id(), self._finger_table.get_finger_ith(i).node], type='l'):
 
             if debug:
                 print("Updating finger table of node {} and finger number {}.".format(self.get_node_id(),i))
@@ -371,9 +384,11 @@ class Node(object):
 
             p = self.get_predecessor()
 
+            print(p)
+
             while True:
                 try:
-                    if p[1] == self.get_connection_string():
+                    if (not p) or p[1] == self.get_connection_string():
 
                         if debug:
                             print("\n\n{} : Predecessor same as node.\n\n".format(self.get_node_id()))
@@ -387,6 +402,7 @@ class Node(object):
 
                         p_client = xmlrpc.client.ServerProxy('http://' + p[1] + '/RPC2')
                         p_client.update_finger_table(s, i)
+                        #p_client.update_finger_table((self.get_node_id(), self.get_connection_string()), i)
                     break
                 except Exception as e:
                     print(e)
