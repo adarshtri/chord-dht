@@ -14,7 +14,8 @@ scheduler = sched.scheduler(time.time, time.sleep)
 
 def stabilize_call(chord_node: Node) -> None:
     chord_node.stabilize()
-    scheduler.enter(5, 1, stabilize_call, (chord_node,))
+    chord_node.fix_fingers()
+    scheduler.enter(ConfigurationManager.get_configuration().get_stabilize_interval(), 1, stabilize_call, (chord_node,))
 
 
 def start_chord_node(chord_node):
@@ -52,7 +53,7 @@ if __name__ == "__main__":
 
     start_chord_node(node)
     node.join()
-    scheduler.enter(5, 1, stabilize_call, (node,))
+    scheduler.enter(ConfigurationManager.get_configuration().get_stabilize_interval(), 1, stabilize_call, (node,))
     stabilization_thread = threading.Thread(target=scheduler.run, args=(True,))
     stabilization_thread.start()
 
@@ -64,8 +65,6 @@ if __name__ == "__main__":
                               "6. \"store\" Store\n"
                               "Enter your input:")
         if console_input.strip() == "stop":
-            node.leave()
-            stop_chord_node()
             while True:
                 try:
                     scheduler.cancel(scheduler.queue[0])
@@ -73,6 +72,8 @@ if __name__ == "__main__":
                     break
                 except:
                     continue
+            node.leave()
+            stop_chord_node()
             break
 
         if console_input.strip() == "reset":

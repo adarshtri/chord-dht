@@ -4,6 +4,7 @@ import traceback
 import inspect
 import consistent_hashing
 import ast
+import random
 
 debug = False
 function_debug = False
@@ -45,6 +46,15 @@ class Finger(object):
 
     def get_finger_number(self):
         return self._finger_number
+
+    def set_id(self, id):
+        self._identifier = id
+
+    def set_port(self, port):
+        self._port = port
+
+    def set_ip(self, ip):
+        self._ip = ip
 
     def set_node(self, node):
         self.node = node
@@ -325,8 +335,7 @@ class Node(object):
 
             if debug:
                 print(str(self._finger_table))
-
-            print(i, Finger.i_start(self.get_node_id(), i+2), self.get_node_id(), self._finger_table.get_finger_ith(i).node)
+                print(i, Finger.i_start(self.get_node_id(), i+2), self.get_node_id(), self._finger_table.get_finger_ith(i).node)
 
             if self.in_bracket(Finger.i_start(self.get_node_id(), i+2),
                                [self.get_node_id(), self._finger_table.get_finger_ith(i).node],
@@ -351,8 +360,6 @@ class Node(object):
         for i in range(self._config.get_m_bits()):
 
             p = self.find_predecessor(Finger.go_back_n(self.get_node_id(), 2**(i)))
-
-            print(Finger.go_back_n(self.get_node_id(), 2 ** (i)), p)
 
             if debug:
                 print("Predecessor of " + str(Finger.go_back_n(self.get_node_id(), 2**(i))) + " is : " + str(p) + ": " + str(i))
@@ -384,8 +391,6 @@ class Node(object):
             self._finger_table.update_finger_at_ith_position(i, finger)
 
             p = self.get_predecessor()
-
-            print(p)
 
             while True:
                 try:
@@ -460,7 +465,7 @@ class Node(object):
     def in_bracket(self, num, limits, type='c'):
 
         if debug:
-            print(num, limits[0], limits[1], type, end=' ')
+            print("{}, {}, {}".format(num, limits[0], limits[1], type))
 
         lower, higher = limits
 
@@ -565,21 +570,16 @@ class Node(object):
         return (self.get_xml_client(self.find_successor(key))).delete_key(key)
 
     def set_key(self, key):
-        print(key)
         self._store[key] = True
         return self.get_connection_string()
 
     def get_key(self, key):
-
-        print(key)
 
         if key in self._store:
             return self.get_connection_string()
         return None
 
     def delete_key(self, key):
-
-        print(key)
 
         if key in self._store:
             del self._store[key]
@@ -598,7 +598,6 @@ class Node(object):
         keys_to_be_deleted = []
 
         for key in self._store:
-            print(node_id, self.get_node_id())
             if self.in_bracket(key, [self.get_node_id(), node_id], 'o'):
                 transfer_data[key] = True
                 keys_to_be_deleted.append(key)
@@ -619,4 +618,25 @@ class Node(object):
             self._store[key] = True
 
     def stabilize(self):
-        print("Stabilization called on {}.", self.get_node_id())
+        successor_client = self.get_xml_client(self.get_successor())
+        x = successor_client.get_predecessor()
+        if self.in_bracket(x[0], [self.get_node_id(), self.get_successor()[0]], 'o'):
+            self.set_successor(x)
+        successor_client.notify((self.get_node_id(), self.get_connection_string()))
+
+    def notify(self, nprime):
+        if (not self.get_predecessor()) or \
+                self.in_bracket(nprime[0], [self.get_predecessor()[0], self.get_node_id()], 'o'):
+            self.set_predecessor(nprime)
+
+    def fix_fingers(self):
+        i = random.randint(1, self._config.get_m_bits()-1)
+        finger = self._finger_table.get_finger_ith(i)
+        finger = finger.create_copy()
+        finger_start_successor = self.find_successor(finger.start)
+        finger.set_node(finger_start_successor[0])
+        finger.set_connection_string(finger_start_successor[1])
+        finger.set_id(finger_start_successor[0])
+        finger.set_ip(finger_start_successor[1].split(":")[0])
+        finger.set_port(finger_start_successor[1].split(":")[1])
+        self._finger_table.update_finger_at_ith_position(i, finger)

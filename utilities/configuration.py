@@ -25,6 +25,15 @@ class Configuration(object):
     def get_m_bits(self):
         return self._config[ConfigurationConstants.CHORD_M_BITS]
 
+    def get_stabilize_interval(self):
+        return self._config[ConfigurationConstants.CHORD_STABILIZE_INTERVAL]
+
+    def get_log_file(self):
+        return self._config[ConfigurationConstants.LOG_FILE]
+
+    def get_should_log_to_file(self):
+        return self._config[ConfigurationConstants.SHOULD_LOG_TO_FILE]
+
     def _set_config(self):
 
         try:

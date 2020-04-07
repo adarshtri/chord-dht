@@ -9,18 +9,18 @@ from random import randrange
 i = "localhost:4005"
 i = i.strip()
 
-client = ChordClient(bootstrap_server="152.7.99.157:4000")
-
-keys = []
-
-f = open("/Users/atrivedi/StudyMaterial/Projects/chord-dht/sample.txt", "r")
-a = f.read()
-a = a.split(" ")
-
-for i, aa in enumerate(a):
-    if i % 100 == 0:
-        print(i)
-    print(client.get(aa))
+# client = ChordClient(bootstrap_server="152.7.99.157:4000")
+#
+# keys = []
+#
+# f = open("/Users/atrivedi/StudyMaterial/Projects/chord-dht/sample.txt", "r")
+# a = f.read()
+# a = a.split(" ")
+#
+# for i, aa in enumerate(a):
+#     if i % 100 == 0:
+#         print(i)
+#     print(client.get(aa))
 
 # while True:
 #     ip = input("get / put / del ? ")
@@ -35,3 +35,6 @@ for i, aa in enumerate(a):
 #
 #     if ip == "del":
 #         print(client.delete(key))
+
+import random
+print(random.randint(0, 1))
