@@ -90,3 +90,4 @@ if __name__ == "__main__":
 
         if console_input.strip() == "store":
             print(node.get_store())
+
