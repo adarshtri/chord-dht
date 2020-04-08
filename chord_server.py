@@ -62,7 +62,8 @@ if __name__ == "__main__":
         print("\n\nRunning with server id : " + str(server_id))
         console_input = input("1. \"stop\" to shutdown chord node\n2. \"reset\" to reload new configuration\n"
                               "3. \"pred\" Get predecessor\n4. \"succ\" Get successor\n5. \"ftable\" Finger Table\n"
-                              "6. \"store\" Store\n"
+                              "6. \"store\" Store\n7. \"ssize\" Store Size\n8. \"set\" Set a key\n"
+                              "9. \"get\" Get a key location\n10. \"del\" Delete a key\n"
                               "Enter your input:")
         if console_input.strip() == "stop":
             while True:
@@ -80,14 +81,28 @@ if __name__ == "__main__":
             ConfigurationManager.reset_configuration()
 
         if console_input.strip() == "pred":
-            print(node.get_predecessor())
+            print("\nPredecessor is : {}.".format(node.get_predecessor()))
 
         if console_input.strip() == "succ":
-            print(node.get_successor())
+            print("\nSuccessor is : {}.".format(node.get_successor()))
 
         if console_input.strip() == "ftable":
             print(str(node.get_finger_table()))
 
         if console_input.strip() == "store":
-            print(node.get_store())
+            print("\nStore\n\n {}".format(node.get_store()))
 
+        if console_input.strip() == "ssize":
+            print("\nStore size for this node is {}.".format(len(node.get_store())))
+
+        if console_input.strip() == "set":
+            store_input = input("\nEnter value to be stored:")
+            print("Key stored on : {}.".format(node.store(store_input.strip())))
+
+        if console_input.strip() == "get":
+            get_input = input("\nEnter value to be retrieved:")
+            print("Key is on : {}.".format(node.get(get_input.strip())))
+
+        if console_input.strip() == "del":
+            del_input = input("\nEnter value to be deleted:")
+            print("Key deleted on : {}.".format(node.delete(del_input.strip())))

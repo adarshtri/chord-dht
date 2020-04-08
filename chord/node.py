@@ -5,6 +5,7 @@ import inspect
 import consistent_hashing
 import ast
 import random
+import collections
 
 debug = False
 function_debug = False
