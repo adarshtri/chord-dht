@@ -1,7 +1,7 @@
 import socket
 import threading
 import socketserver
-from constants.messaging_constants import MessagingConstants
+from utilities.configuration import ConfigurationManager
 
 
 __all__ = ["ChordSocketServerThreadManager", "ChordSocketClient"]
@@ -65,12 +65,15 @@ class ChordSocketServerThreadManager(object):
         """
         Start the socket server to listen on the specified port.
         Sets the attribute "open_server" of the class which is used to later close the server on stop_server() method.
-        :return:
+        :return: None
         """
+
+        ip = ConfigurationManager.get_configuration().get_advertised_ip()
+        port = ConfigurationManager.get_configuration().get_socket_port()
+
         if not ChordSocketServerThreadManager.server:
             ChordSocketServerThreadManager.server = \
-                ThreadedChordTCPServer((MessagingConstants.SERVER_HOST, MessagingConstants.SERVER_PORT),
-                                       ChordSocketServerHandler)
+                ThreadedChordTCPServer((ip, port), ChordSocketServerHandler)
 
             ChordSocketServerThreadManager.server_thread = \
                 threading.Thread(target=ChordSocketServerThreadManager.server.serve_forever)
