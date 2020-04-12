@@ -3,18 +3,21 @@ import sys
 from messaging.rpc import XMLRPCChordServerManager
 from utilities.configuration import ConfigurationManager
 from constants.configuration_constants import ConfigurationConstants
-from chord.node import Node
 from consistent_hashing import Consistent_Hashing
 import sched
 import time
 import threading
 
 scheduler = sched.scheduler(time.time, time.sleep)
+logger = None
 
 
-def stabilize_call(chord_node: Node) -> None:
-    chord_node.stabilize()
-    chord_node.fix_fingers()
+def stabilize_call(chord_node) -> None:
+    try:
+        chord_node.stabilize()
+        chord_node.fix_fingers()
+    except Exception as e:
+        logger.exception("Something went wrong with stabilization.")
     scheduler.enter(ConfigurationManager.get_configuration().get_stabilize_interval(), 1, stabilize_call, (chord_node,))
 
 
@@ -45,6 +48,9 @@ if __name__ == "__main__":
 
     os.environ[ConfigurationConstants.CHORD_CONFIGURATION_FILE_ENV_VARIABLE] = configuration_file
     ConfigurationManager.reset_configuration()
+    from chord.node import Node
+    from utilities.app_logging import Logging
+    logger = Logging.get_logger(__name__)
 
     server_ip = ConfigurationManager.get_configuration().get_chord_server_ip()
     server_port = ConfigurationManager.get_configuration().get_socket_port()
@@ -85,6 +91,9 @@ if __name__ == "__main__":
 
         if console_input.strip() == "succ":
             print("\nSuccessor is : {}.".format(node.get_successor()))
+
+        if console_input.strip() == "succ_list":
+            print("\nSuccessor list is : {}.".format(node.get_successor_list()))
 
         if console_input.strip() == "ftable":
             print(str(node.get_finger_table()))

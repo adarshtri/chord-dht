@@ -31,8 +31,17 @@ class Configuration(object):
     def get_log_file(self):
         return self._config[ConfigurationConstants.LOG_FILE]
 
-    def get_should_log_to_file(self):
-        return self._config[ConfigurationConstants.SHOULD_LOG_TO_FILE]
+    def get_should_log_to_console(self):
+        return int(self._config[ConfigurationConstants.LOG_TO_CONSOLE])
+
+    def get_log_frequency_interval(self):
+        return int(self._config[ConfigurationConstants.LOG_FREQUENCY_INTERVAL])
+
+    def get_log_frequency_interval_unit(self):
+        return self._config[ConfigurationConstants.LOG_FREQUENCY_UNIT]
+
+    def get_log_frequency_backup_count(self):
+        return self._config[ConfigurationConstants.LOG_FREQUENCY_BACKUP_COUNT]
 
     def _set_config(self):
 

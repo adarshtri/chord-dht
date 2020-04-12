@@ -5,8 +5,9 @@ import inspect
 import consistent_hashing
 import ast
 import random
-import collections
+from utilities.app_logging import Logging
 
+logger = Logging.get_logger(__name__)
 debug = False
 function_debug = False
 
@@ -190,12 +191,12 @@ class Node(object):
         self._finger_table = FingerTable(size=self._config.get_m_bits())
         self.predecessor = None
         self.successor = None
+        self.successor_list = [(self.get_node_id(), self.get_connection_string())]*3
 
-        if debug:
-            if not bootstrap_node:
-                print("Creating new node, with no bootstrap server.\n"
-                      "Node ip: {}\n".format(node_ip),
-                      "Node id: {}\n".format(node_id))
+        if not bootstrap_node:
+            logger.info("Creating new node, with no bootstrap server.")
+            logger.info("Node ip: {}".format(node_ip))
+            logger.info("Node id: {}".format(str(node_id)))
 
         self._set_default_node_parameters()
 
@@ -209,11 +210,37 @@ class Node(object):
     def set_predecessor(self, predecessor) -> None:
         self.predecessor = predecessor
 
-    def set_successor(self, successor, set_pred=False) -> None:
-        self.successor = successor
+    def set_successor(self, successor, stabilization=False) -> None:
+        logger.info("Setting successor for this node to {}.".format(successor))
 
-        if set_pred:
-            self.set_predecessor(self.find_predecessor(self.get_node_id()))
+        if not stabilization:
+            self.successor = successor
+
+        # if set_pred:
+        #     self.set_predecessor(self.find_predecessor(self.get_node_id()))
+
+        self.successor_list[0] = self.successor
+
+        i = 1
+        while i < 3:
+            intermediate_client = self.get_xml_client(self.successor_list[i-1])
+            try:
+                intermediate_client.get_node_id()
+                self.successor_list[i] = intermediate_client.get_successor()
+            except:
+                self.successor_list[i-1] = self.successor_list[i]
+                if i == 1:
+                    self.successor = self.successor_list[i]
+                    self.update_finger_table(self.get_successor(), 0, True)
+
+                    try:
+                        intermediate_client_for_predecessor = self.get_xml_client(self.get_successor())
+                        intermediate_client_for_predecessor.get_node_id()
+                        intermediate_client_for_predecessor.set_predecessor((self.get_node_id(), self.get_connection_string()))
+                    except:
+                        logger.exception("Will try again updating the predecessor.")
+
+            i += 1
 
     def get_successor(self):
         return self.successor
@@ -233,6 +260,9 @@ class Node(object):
     def get_node_ip(self):
         return self._node_ip
 
+    def get_successor_list(self):
+        return self.successor_list
+
     def join(self) -> None:
 
         """
@@ -244,13 +274,12 @@ class Node(object):
         :return: None
         """
 
-        if debug:
-            print("My id {}".format(self.get_node_id()))
-
-        if debug:
-            print("Starting join ....")
+        logger.info("My id {}".format(self.get_node_id()))
+        logger.info("Starting join ....")
 
         if not self._bootstrap_server:
+            logger.warn("No bootstrap server provided. Starting a new chord ring.")
+            logger.info("Initializing the finger table.")
             for i in range(1, self._config.get_m_bits()+1):
                 finger = Finger(ip=self._config.get_chord_server_ip(),
                                 identifier=self._node_id,
@@ -267,34 +296,41 @@ class Node(object):
                                               self.get_node_ip() + ":" + str(self.get_port())))
             self.set_successor(successor=(self.get_node_id(),
                                           self.get_node_ip() + ":" + str(self.get_port())))
-
+            logger.info("No need to update others. This is the only node is p2p system.")
         else:
+            logger.info("Joining an existing chord ring with bootstrap server {}.".format(self._bootstrap_server))
             try:
 
                 nprime = xmlrpc.client.ServerProxy('http://' + self._bootstrap_server + '/RPC2')
                 nprime.get_finger_table()
                 self.set_predecessor(nprime.find_predecessor(self.get_node_id()))
 
-                if debug:
-                    print("My predecessor is: " + str(self.get_predecessor()))
+                logger.info("Found predecessor: " + str(self.get_predecessor()))
 
                 #self.set_predecessor(nprime.find_predecessor(self.get_node_id()))
                 self.set_successor(self.get_xml_client(self.get_predecessor()).get_successor())
+                logger.info("Found successor: " + str(self.get_successor()))
                 #self.set_successor(self.get_xml_client(self.get_predecessor()).get_successor())
                     #set_successor((self.get_node_id(), self.get_connection_string()), True)
 
+                logger.info("Initializing the finger table.")
                 self._init_finger_table(nprime)
+                logger.info("Finger table initialized successfully.")
+                logger.info("Starting to update others.")
                 self._update_others()
+                logger.info("Successfully updated others about this join.")
 
                 #(self.get_xml_client(self.get_predecessor())).set_successor(
                  #   (self.get_node_id(), self.get_connection_string()))
 
-
-
+                logger.info("Updating this node's successor's predecessor pointer to this node.")
                 (self.get_xml_client(self.get_successor())).set_predecessor(
                     (self.get_node_id(), self.get_connection_string()))
+                logger.info("Update successful.")
+                logger.info("Updating this node's predecessor's successor pointer to this node.")
                 (self.get_xml_client(self.get_predecessor())).set_successor(
                     (self.get_node_id(), self.get_connection_string()))
+                logger.info("Update successful.")
 
                 self.initialize_store()
 
@@ -304,8 +340,8 @@ class Node(object):
                 print("Invalid bootstrap server provided or failed to join the p2p system.")
                 exit(1)
 
-        if debug:
-            print(str(self._finger_table))
+        logger.info(str(self._finger_table))
+        logger.info("Join successful.")
 
     @staticmethod
     def get_xml_client(node):
@@ -313,16 +349,12 @@ class Node(object):
 
     def _init_finger_table(self, bootstrap_server):
 
-        successor = self.get_successor() #bootstrap_server.find_successor(Finger.i_start(self.get_node_id(), 1))
+        successor = self.get_successor()
 
         # new
         self.set_predecessor(self.get_xml_client(successor).get_predecessor())
-        # (self.get_xml_client(self.get_successor())).set_predecessor((self.get_node_id(), self.get_connection_string()))
-        # (self.get_xml_client(self.get_predecessor())).set_successor((self.get_node_id(), self.get_connection_string()))
 
-        if debug:
-            print("Found successor {}, {}.".format(str(successor[0]), successor[1]))
-
+        logger.info("Initializing the first finger to successor node {}.".format(str(self.get_successor())))
         finger = Finger(ip=successor[1].split(":")[0], identifier=successor[0],
                         port=successor[1].split(":")[1], finger_number=1, my_chord_server_node_id=self.get_node_id())
         finger.set_xml_client(xmlrpc.client.ServerProxy('http://' + successor[1] + '/RPC2'))
@@ -334,13 +366,19 @@ class Node(object):
 
         for i in range(self._config.get_m_bits()-1):
 
-            if debug:
-                print(str(self._finger_table))
-                print(i, Finger.i_start(self.get_node_id(), i+2), self.get_node_id(), self._finger_table.get_finger_ith(i).node)
+            logger.info("Setting finger {}.".format(i+2))
 
             if self.in_bracket(Finger.i_start(self.get_node_id(), i+2),
                                [self.get_node_id(), self._finger_table.get_finger_ith(i).node],
                                type='l'):
+
+                logger.info("{} belongs [{},{}).".format(
+                    Finger.i_start(self.get_node_id(), i + 2),
+                    self.get_node_id(),
+                    self._finger_table.get_finger_ith(i).node
+                ))
+
+                logger.info("Setting finger {} from finger {}.".format(i+2, i+1))
 
                 finger = self._finger_table.get_finger_ith(i)
                 new_finger = finger.create_copy(my_chord_server_id=self.get_node_id())
@@ -350,6 +388,7 @@ class Node(object):
                 self._finger_table.update_finger_at_ith_position(i+1, new_finger)
             else:
                 entry = bootstrap_server.find_successor(Finger.i_start(self.get_node_id(), i+2))
+                logger.info("Setting finger {} with start {} to {}.".format(i+2, Finger.i_start(self.get_node_id(), i+2), str(entry)))
                 finger = Finger(ip=entry[1].split(":")[0], identifier=entry[0],
                                 finger_number=i+2, port=entry[1].split(":")[1],
                                 my_chord_server_node_id=self.get_node_id())
@@ -358,15 +397,18 @@ class Node(object):
 
     def _update_others(self):
 
+        logger.info("Starting to update others.")
+
         for i in range(self._config.get_m_bits()):
 
             p = self.find_predecessor(Finger.go_back_n(self.get_node_id(), 2**(i)))
 
-            if debug:
-                print("Predecessor of " + str(Finger.go_back_n(self.get_node_id(), 2**(i))) + " is : " + str(p) + ": " + str(i))
+            logger.info("Predecessor of " + str(Finger.go_back_n(self.get_node_id(), 2**(i))) + " is : " + str(p) + ": " + str(i))
             client = xmlrpc.client.ServerProxy('http://' + p[1] + '/RPC2')
 
             client.update_finger_table((self.get_node_id(), self.get_connection_string()), i)
+
+        logger.info("Finished updating others.")
 
     def update_finger_table(self, s, i, for_leave=False):
 
@@ -381,9 +423,7 @@ class Node(object):
 
         if s[0] != self.get_node_id() and self.in_bracket(s[0], [self.get_node_id(), self._finger_table.get_finger_ith(i).node], type='l'):
 
-            if debug:
-                print("Updating finger table of node {} and finger number {}.".format(self.get_node_id(),i))
-                print(str(self._finger_table))
+            logger.info("Updating finger table of node {} and finger number {}.".format(self.get_node_id(),i))
 
             finger = Finger(ip=s[1].split(":")[0], identifier=s[0], port=s[1].split(":")[1], finger_number=i+1,
                             my_chord_server_node_id=self.get_node_id())
@@ -396,20 +436,13 @@ class Node(object):
             while True:
                 try:
                     if (not p) or p[1] == self.get_connection_string():
-
-                        if debug:
-                            print("\n\n{} : Predecessor same as node.\n\n".format(self.get_node_id()))
+                        logger.info("{} : Predecessor same as node.".format(self.get_node_id()))
 
                         p_client = self
-                        #self.set_predecessor(p_client.find_predecessor(self.get_node_id()))
                     else:
-
-                        if debug:
-                            print("Update finger table for node id {} and finger number {}.".format(p[0], i))
-
+                        logger.info("Update finger table for node id {} and finger number {}.".format(p[0], i))
                         p_client = xmlrpc.client.ServerProxy('http://' + p[1] + '/RPC2')
                         p_client.update_finger_table(s, i)
-                        #p_client.update_finger_table((self.get_node_id(), self.get_connection_string()), i)
                     break
                 except Exception as e:
                     print(e)
@@ -421,12 +454,15 @@ class Node(object):
         return str(self._finger_table)
 
     def find_successor(self, identifier):
+        logger.info("Finding successor for {}.".format(identifier))
         predecessor = self.find_predecessor(identifier)
         predecessor_client = xmlrpc.client.ServerProxy('http://' + predecessor[1] + '/RPC2')
+        logger.info("Found successor of {} : {}.".format(identifier, str(predecessor_client.get_successor())))
         return predecessor_client.get_successor()
 
     def find_predecessor(self, identifier):
 
+        logger.info("Finding predecessor of {}.".format(identifier))
         node = xmlrpc.client.ServerProxy('http://' + self.get_connection_string() + '/RPC2')
 
         if node.get_node_id() == node.get_successor()[0]:
@@ -444,24 +480,35 @@ class Node(object):
                     break
                 except Exception as e:
                     continue
-
+        logger.info("Found predecessor of {} : {}.".format(identifier, node.get_node_id()))
         return node.get_node_id(), node.get_connection_string()
 
     def closest_preceding_finger(self, identifier):
+        logger.info("Finding closest preceding finger of {}.".format(identifier))
         m = self._config.get_m_bits()
         for i in range(m-1, -1, -1):
             if self.in_bracket(self._finger_table.get_finger_ith(i).node, [self.get_node_id(), identifier],
                                "o"):
+                logger.info("Closest preceding finger of {} : {}.".format(identifier, self._finger_table.get_finger_ith(i).node))
                 return self._finger_table.get_finger_ith(i).node, \
                        self._finger_table.get_finger_ith(i).get_connection_string()
+        logger.info("Closest preceding finger of {} : {}.".format(identifier, self.get_node_id()))
         return self.get_node_id(), self.get_connection_string()
 
     def leave(self):
 
+        logger.info("Starting to leave the system.")
+        logger.info("Setting predecessor's [{}] successor to this node's successor [{}].".
+                    format(self.get_predecessor(), self.get_successor()))
         self.get_xml_client(self.get_predecessor()).set_successor(self.get_successor())
+        logger.info("Setting successor's [{}] predecessor to this node's predecessor [{}].".
+                    format(self.get_successor(), self.get_predecessor()))
         self.get_xml_client(self.get_successor()).set_predecessor(self.get_predecessor())
+        logger.info("Updating 1st finger (successor) to this node's successor.")
         self.get_xml_client(self.get_predecessor()).update_finger_table(self.get_successor(), 0, True)
+        logger.info("Transferring keys to responsible node.")
         self.transfer_before_leave()
+        logger.info("Node {} left the system successfully.".format(self.get_node_id()))
 
     def in_bracket(self, num, limits, type='c'):
 
@@ -503,60 +550,6 @@ class Node(object):
             if function_debug:
                 print('called ', returned.__name__)
         return returned
-
-    @staticmethod
-    def belongs_to(i, x, y, x_clause='open', y_clause='close'):
-        """
-        Returns true if i belongs to (x,y) if x_clause = open and y_clause = open and respectively.
-        :param i: node id to be checked for belongitivity
-        :param x: first interval value
-        :param y: second interval value
-        :param x_clause: first interval closed or open (default open)
-        :param y_clause: second interval closed or open (default closed)
-        :return: return Boolean true or false based on condition matching
-        """
-
-        if x_clause == "open" and y_clause == "open":
-
-            if x < i < y:
-                return True
-
-            elif i < x and i < y < x:
-                return True
-
-            return False
-
-        if x_clause == "open" and y_clause == "close":
-
-            if x < i <= y:
-                return True
-
-            elif i < x and i <= y < x:
-                return True
-
-            return False
-
-        if x_clause == "close" and y_clause == "open":
-
-            if x <= i < y:
-                return True
-
-            elif i <= x and i < y <= x:
-                return True
-
-            return False
-
-        if x_clause == "close" and y_clause == "close":
-
-            if x <= i <= y:
-                return True
-
-            elif i <= x and i <= y <= x:
-                return True
-
-            return False
-
-        return False
 
     def store(self, key):
         key = consistent_hashing.Consistent_Hashing.get_modulo_hash(key, self._config.get_m_bits())
@@ -618,12 +611,14 @@ class Node(object):
         for key in store:
             self._store[key] = True
 
-    def stabilize(self):
+    def stabilize_paper(self):
+        logger.info("Starting stabilization.")
         successor_client = self.get_xml_client(self.get_successor())
         x = successor_client.get_predecessor()
         if self.in_bracket(x[0], [self.get_node_id(), self.get_successor()[0]], 'o'):
             self.set_successor(x)
         successor_client.notify((self.get_node_id(), self.get_connection_string()))
+        logger.info("Finished stabilization.")
 
     def notify(self, nprime):
         if (not self.get_predecessor()) or \
@@ -641,3 +636,6 @@ class Node(object):
         finger.set_ip(finger_start_successor[1].split(":")[0])
         finger.set_port(finger_start_successor[1].split(":")[1])
         self._finger_table.update_finger_at_ith_position(i, finger)
+
+    def stabilize(self):
+        self.set_successor(self.successor, True)

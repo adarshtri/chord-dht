@@ -1,9 +1,0 @@
-{
-  "ip": "localhost",
-  "advertised_ip": "",
-  "socket_port": 5004,
-  "m_bits": 20,
-  "stabilize_interval": 2,
-  "log_file": "chord4.log",
-  "log_to_file": 1
-}

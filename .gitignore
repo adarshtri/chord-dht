@@ -11,3 +11,6 @@ config4.json
 config5.json
 config6.json
 config.json
+logs/
+config/
+config1.json
