@@ -16,6 +16,7 @@ def stabilize_call(chord_node) -> None:
     try:
         chord_node.stabilize()
         chord_node.fix_fingers()
+        #chord_node.replication_stabilization()
     except Exception as e:
         logger.exception("Something went wrong with stabilization.")
     scheduler.enter(ConfigurationManager.get_configuration().get_stabilize_interval(), 1, stabilize_call, (chord_node,))
@@ -106,7 +107,7 @@ if __name__ == "__main__":
 
         if console_input.strip() == "set":
             store_input = input("\nEnter value to be stored:")
-            print("Key stored on : {}.".format(node.store(store_input.strip())))
+            print("Key stored on : {}.".format(node.set(store_input.strip())))
 
         if console_input.strip() == "get":
             get_input = input("\nEnter value to be retrieved:")
