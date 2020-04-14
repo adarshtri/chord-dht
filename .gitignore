@@ -14,3 +14,6 @@ config.json
 logs/
 config/
 config1.json
+test/__pycache__/
+test/automated_test/__pycache__/
+test/interactive_test/__pycache__/

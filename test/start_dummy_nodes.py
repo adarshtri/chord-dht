@@ -9,8 +9,24 @@ import sched
 import json
 import unittest
 
-
-TestNode = None
+os.environ[ConfigurationConstants.CHORD_CONFIGURATION_FILE_ENV_VARIABLE] = "config.test.json"
+fp = open(os.environ[ConfigurationConstants.CHORD_CONFIGURATION_FILE_ENV_VARIABLE], "w")
+fp.write(json.dumps({
+            "ip": "localhost",
+            "advertised_ip": "",
+            "socket_port": 5001,
+            "m_bits": 20,
+            "stabilize_interval": 2,
+            "log_file": "logs/chord1/chord.log",
+            "log_to_console": 0,
+            "log_frequency_interval": 5,
+            "log_frequency_unit": "m",
+            "log_frequency_backup_count": 10000,
+            "bootstrap_server": None
+        }))
+fp.close()
+from chord.node import Node
+TestNode = Node
 
 
 def stabilize_call(chord_node, schedule) -> None:
@@ -213,7 +229,7 @@ class DummyNodeManager(object):
             print("Dummy node already stopped.")
 
     def stop_all_nodes(self):
-        for i in range(len(self._node_ids)):
+        for i in range(len(self._node_ids)-1, -1, -1):
             self.stop_specific_node(i)
             print("Stopped server {}.".format(i+1))
             self._state[i] = False

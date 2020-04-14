@@ -276,7 +276,7 @@ class Node(object):
         logger.info("Starting join ....")
 
         if not self._bootstrap_server:
-            logger.warn("No bootstrap server provided. Starting a new chord ring.")
+            logger.warning("No bootstrap server provided. Starting a new chord ring.")
             logger.info("Initializing the finger table.")
             for i in range(1, self._config.get_m_bits()+1):
                 finger = Finger(ip=self._config.get_chord_server_ip(),
