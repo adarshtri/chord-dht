@@ -2,7 +2,7 @@ from utilities.configuration import ConfigurationManager
 import xmlrpc.client
 import traceback
 import inspect
-import consistent_hashing
+from utilities import consistent_hashing
 import ast
 import random
 from utilities.app_logging import Logging

@@ -1,5 +1,4 @@
 import xmlrpc.client
-import consistent_hashing
 
 
 class ChordClient(object):

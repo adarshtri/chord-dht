@@ -3,7 +3,7 @@ import sys
 from messaging.rpc import XMLRPCChordServerManager
 from utilities.configuration import ConfigurationManager
 from constants.configuration_constants import ConfigurationConstants
-from consistent_hashing import Consistent_Hashing
+from utilities.consistent_hashing import Consistent_Hashing
 import sched
 import time
 import threading
