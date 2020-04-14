@@ -1,4 +1,4 @@
-#Chord: Distributed Hash Table
+# Chord: Distributed Hash Table
 * This project is an implementation of chord protocol. 
 * The implementation is in python. 
 * There is no external dependency required. 
