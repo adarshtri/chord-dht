@@ -7,6 +7,7 @@ from utilities.consistent_hashing import Consistent_Hashing
 import sched
 import time
 import threading
+import argparse
 
 scheduler = sched.scheduler(time.time, time.sleep)
 logger = None
@@ -30,22 +31,49 @@ def stop_chord_node():
     XMLRPCChordServerManager.stop_server()
 
 
+def get_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config',
+                        required=True,
+                        action='store',
+                        dest='config',
+                        help='Location to configuration file.',
+                        type=str)
+
+    parser.add_argument('--bootstrap-server',
+                        required=False,
+                        default=None,
+                        dest='bootstrap_server',
+                        help='Bootstrap server in the form (localhost:5000).',
+                        type=str)
+
+    parser.add_argument('--server-id',
+                        required=False,
+                        action='store',
+                        dest='server_id',
+                        help='Server id on chord node. Use this only for testing purpose.',
+                        type=int)
+
+    parser.add_argument('--no-hash',
+                        required=False,
+                        default=False,
+                        action='store_true',
+                        dest='no_hash',
+                        help='If provided requires keys to be stored to be numeric.'
+                             'No hashing is performed on keys.')
+
+    results = parser.parse_args()
+    configuration_file = results.config
+    bootstrap_server = results.bootstrap_server
+    server_id = results.server_id
+    no_hash = results.no_hash
+
+    return configuration_file, bootstrap_server, server_id, no_hash
+
+
 if __name__ == "__main__":
 
-    if len(sys.argv) < 2:
-        print("Kindly provide the location for configuration file.")
-        exit(1)
-
-    configuration_file = None
-    bootstrap_server = None
-    server_ip = None
-
-    if len(sys.argv) == 2:
-        configuration_file = sys.argv[1]
-        bootstrap_server = None
-    elif len(sys.argv) == 3:
-        configuration_file = sys.argv[1]
-        bootstrap_server = sys.argv[2]
+    configuration_file, bootstrap_server, server_id, no_hash = get_arguments()
 
     os.environ[ConfigurationConstants.CHORD_CONFIGURATION_FILE_ENV_VARIABLE] = configuration_file
     ConfigurationManager.reset_configuration()
@@ -55,7 +83,8 @@ if __name__ == "__main__":
 
     server_ip = ConfigurationManager.get_configuration().get_chord_server_ip()
     server_port = ConfigurationManager.get_configuration().get_socket_port()
-    server_id = Consistent_Hashing.get_modulo_hash(server_ip + ":" + str(server_port), ConfigurationManager.get_configuration().get_m_bits())
+    if not server_id:
+        server_id = Consistent_Hashing.get_modulo_hash(server_ip + ":" + str(server_port), ConfigurationManager.get_configuration().get_m_bits())
     node = Node(node_id=server_id,node_ip=server_ip, bootstrap_node=bootstrap_server)
 
     start_chord_node(node)
@@ -107,12 +136,31 @@ if __name__ == "__main__":
 
         if console_input.strip() == "set":
             store_input = input("\nEnter value to be stored:")
-            print("Key stored on : {}.".format(node.set(store_input.strip())))
+            if no_hash:
+                try:
+                    value = int(store_input.strip())
+                    print("Key stored on : {}.".format(node.set(value, hash_it=False)))
+                except ValueError:
+                    print("Invalid value provided in --no-hash mode.")
+            else:
+                print("Key stored on : {}.".format(node.set(store_input.strip())))
 
         if console_input.strip() == "get":
             get_input = input("\nEnter value to be retrieved:")
-            print("Key is on : {}.".format(node.get(get_input.strip())))
+            if no_hash:
+                try:
+                    value = int(get_input.strip())
+                    print("Key is on : {}.".format(node.get(value, hash_it=False)))
+                except ValueError:
+                    print("Invalid value provided in --no-hash mode.")
+            else:
+                print("Key is on : {}.".format(node.get(get_input.strip())))
 
         if console_input.strip() == "del":
             del_input = input("\nEnter value to be deleted:")
-            print("Key deleted on : {}.".format(node.delete(del_input.strip())))
+            if no_hash:
+                try:
+                    value = int(del_input.strip())
+                    print("Key deleted on : {}.".format(node.delete(value, hash_it=False)))
+                except ValueError:
+                    print("Key deleted on : {}.".format(node.delete(del_input.strip())))
