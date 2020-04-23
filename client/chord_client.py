@@ -1,5 +1,4 @@
 import xmlrpc.client
-import consistent_hashing
 
 
 class ChordClient(object):
@@ -17,11 +16,11 @@ class ChordClient(object):
     def _get_xml_rpc_client(self):
         return self._xml_rpc_client
 
-    def store(self, key):
-        return self._get_xml_rpc_client().store(key)
+    def set(self, key, hash_it=True):
+        return self._get_xml_rpc_client().set(key, hash_it)
 
-    def delete(self, key):
-        return self._get_xml_rpc_client().delete(key)
+    def delete(self, key, hash_it=True):
+        return self._get_xml_rpc_client().delete(key, hash_it)
 
-    def get(self, key):
-        return self._get_xml_rpc_client().get(key)
+    def get(self, key, hash_it=True):
+        return self._get_xml_rpc_client().get(key, hash_it)
