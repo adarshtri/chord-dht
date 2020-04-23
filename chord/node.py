@@ -229,6 +229,7 @@ class Node(object):
             except:
                 self.successor_list[i-1] = self.successor_list[i]
                 if i == 1:
+                    logger.info("Suspect a crash for node [{}].".format(self.get_successor()))
                     self.successor = self.successor_list[i]
                     self.update_finger_table(self.get_successor(), 0, True)
 
@@ -556,31 +557,36 @@ class Node(object):
     def set(self, key, hash_it=True):
         if hash_it:
             key = consistent_hashing.Consistent_Hashing.get_modulo_hash(key, self._config.get_m_bits())
+        logger.info("Set request for key {} at {}.".format(key, self.get_node_id()))
         return (self.get_xml_client(self.find_successor(key))).set_key(key)
 
     def get(self, key, hash_it=True):
         if hash_it:
             key = consistent_hashing.Consistent_Hashing.get_modulo_hash(key, self._config.get_m_bits())
+        logger.info("Get request for key {} at {}.".format(key, self.get_node_id()))
         return (self.get_xml_client(self.find_successor(key))).get_key(key)
 
     def delete(self, key, hash_it=True):
         if hash_it:
             key = consistent_hashing.Consistent_Hashing.get_modulo_hash(key, self._config.get_m_bits())
+        logger.info("Delete request for key {} at {}.".format(key, self.get_node_id()))
         return (self.get_xml_client(self.find_successor(key))).delete_key(key)
 
     def set_key(self, key):
+        logger.info("Set request for key {} redirected at {}.".format(key, self.get_node_id()))
         self._store[key] = True
         if self.get_node_id() != self.get_successor()[0]:
             self.replicate_single_key_to_successor(key)
         return self.get_node_id(), self.get_connection_string()
 
     def get_key(self, key):
+        logger.info("Get request for key {} redirected at {}.".format(key, self.get_node_id()))
         if key in self._store:
             return self.get_node_id(), self.get_connection_string()
         return None
 
     def delete_key(self, key):
-
+        logger.info("Delete request for key {} redirected at {}.".format(key, self.get_node_id()))
         if key in self._store:
             del self._store[key]
             if self.get_node_id() != self.get_successor()[0]:
