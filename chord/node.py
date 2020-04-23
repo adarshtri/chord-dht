@@ -517,8 +517,6 @@ class Node(object):
 
     def in_bracket(self, num, limits, type='c'):
 
-        logger.info("{}, {}, {}".format(num, limits[0], limits[1], type))
-
         lower, higher = limits
 
         if lower == num and (type == 'l' or type == 'c'):
