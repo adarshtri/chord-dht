@@ -259,7 +259,7 @@ which will be assigned to these 5 dummy nodes.
 - The console is to be used while running interactive test cases. For automated test cases just run the python command. There is no need 
 for the console.
 #### Test Interfaces
-#####Two sets of testing interfaces are included namely automated and interactive.
+##### Two sets of testing interfaces are included namely automated and interactive.
 - Automated Test Cases: 
 
     * No need to explicitly start dummy nodes for automated test. They are started automatically.
