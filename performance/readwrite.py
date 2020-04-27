@@ -1,7 +1,19 @@
+"""
+Author: Adarsh Trivedi
+This module hold classes for read and write performance measuring.
+"""
+
+
 from performance.perfomance import Performance, plt, np
 
 
 class ReadWritePerformance(Performance):
+
+    """
+    Author: Adarsh Trivedi
+    This class compares read vs write latency for range of sample sizes. The run performs consecutive
+    write and read for performance measure.
+    """
 
     def __init__(self, input_file, chord_client, sample_sizes, epochs_per_sample_size):
         super().__init__(input_file, chord_client, sample_sizes, epochs_per_sample_size)
@@ -57,6 +69,11 @@ class ReadWritePerformance(Performance):
 
 
 class WritePerformance(Performance):
+    """
+    Author: Adarsh Trivedi
+    This class compares write latency for range of sample sizes. The run performs
+    write for different sample sizes as provided for performance measure.
+    """
 
     def __init__(self, input_file, chord_client, sample_sizes, epochs_per_sample_size):
         super().__init__(input_file, chord_client, sample_sizes, epochs_per_sample_size)

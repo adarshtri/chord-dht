@@ -1,13 +1,21 @@
+"""
+Author: Adarsh Trivedi
+This module holds code to spawn XML RPC servers for node communication. The code is basic boiler plate
+code with few understandable tweaks to fit our use case.
+A threaded XML RPC server is created on start and the thread is closed at stop request.
+"""
+
+
 from xmlrpc import server
 import threading
 import socketserver
 from utilities.configuration import ConfigurationManager
-import multiprocessing
-import ctypes
 
 
 class Node(object):
-
+    """
+    Test class. Not used anywhere.
+    """
     def __init__(self, z):
         self.z = z
 

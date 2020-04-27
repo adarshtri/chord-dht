@@ -1,3 +1,10 @@
+"""
+Author: Adarsh Trivedi
+Module to handle configuration files and provides a configuration object for cleaner
+accessibility for configuration properties throughout the project.
+"""
+
+
 import json
 import os
 from constants.configuration_constants import ConfigurationConstants
@@ -7,6 +14,13 @@ __all__ = ["ConfigurationManager"]
 
 
 class Configuration(object):
+
+    """
+    Author: Adarsh Trivedi
+    Object representation class of configuration files. Could be considered as serialization class
+    for the configuration file. Invalid or missing properties in configuration files are not
+    handled. Assumes configuration file provided is correct.
+    """
 
     def __init__(self, config_file):
 
@@ -62,6 +76,13 @@ class Configuration(object):
 
 
 class ConfigurationManager:
+
+    """
+    Author: Adarsh Trivedi
+    This class makes sure only single instance of the Configuration class is present.
+    There is no need to create multiple instance of Configuration class hence
+    this manager is required.
+    """
 
     configuration = None
 

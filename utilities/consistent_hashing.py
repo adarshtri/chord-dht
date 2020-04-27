@@ -1,3 +1,9 @@
+"""
+Author: Ishan Goel
+This module produces hashed keys for the provided value.
+"""
+
+
 import hashlib
 from utilities.configuration import ConfigurationManager
 

@@ -1,5 +1,6 @@
 import argparse
 from performance.readwrite import *
+from performance.nodecount import *
 from client.chord_client import ChordClient
 
 
@@ -82,10 +83,14 @@ def main():
                                                   epochs_per_sample_size=e_per_sample)
 
     elif run_type == "nodecount":
-        performance_object = None
+        performance_object = WriteNodeCount(input_file=input_file,
+                                       chord_client=client,
+                                       sample_sizes=sample_size,
+                                       epochs_per_sample_size=e_per_sample)
 
     else:
         print("--type parameter not handled at present.")
+        exit(1)
 
     performance_object.run()
 

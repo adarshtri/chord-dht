@@ -1,3 +1,18 @@
+"""
+Author: Adarsh Trivedi
+
+This module is useful in starting dummy nodes during test runs in package test/.
+
+Usage: python3.7 start_dummy_nodes.py [dummy_config_file_name] [node1 id] [node2 id] [node3 id] [node4 id] [node5 id]
+Example: python3.7 start_dummy_nodes.py config.test.json 100000 200000 300000 400000 500000
+
+******NOTE*****
+This module doesn't handle parameter missing or invalid parameters exception. So, kindly use the specified usage
+correctly to start the dummy nodes.
+***************
+"""
+
+
 import sys
 import os
 from constants.configuration_constants import ConfigurationConstants

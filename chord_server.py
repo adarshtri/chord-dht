@@ -1,5 +1,4 @@
 import os
-import sys
 from messaging.rpc import XMLRPCChordServerManager
 from utilities.configuration import ConfigurationManager
 from constants.configuration_constants import ConfigurationConstants

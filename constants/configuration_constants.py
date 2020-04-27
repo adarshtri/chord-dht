@@ -1,5 +1,10 @@
 class ConfigurationConstants(object):
 
+    """
+    Author: Adarsh Trivedi
+    This class holds all the constants to be present as keys in configuration files.
+    """
+
     CHORD_CONFIGURATION_FILE_ENV_VARIABLE = "CHORD_CONFIGURATION_FILE"
 
     CHORD_SERVER_IP = "ip"

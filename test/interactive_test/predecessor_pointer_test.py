@@ -1,3 +1,18 @@
+"""
+Author: Adarsh Trivedi
+This module tests for correctness of predecessor pointers of nodes by first performing joins on 5 nodes,
+then doing graceful leaves and crashes of nodes and checking for correctness of the predecessor
+pointers. The tests are interactive and are designed so that humans can test the code by generating
+scenarios and inputting correct expected values. Test names are intuitive.
+The tests require some chord nodes to be active. For this use test.start_dummy_nodes module to
+spawn 5 nodes on the system for testing. The nodes will be started on port 5001-5005. The start_dummy_nodes
+module provides functionality to start, crash, leave particular nodes to run tests successfully.
+
+Along with predecessor pointer correctness this module also verifies stabilization protocol,
+since pointer correctness after crashes are the responsibility stabilization protocol.
+"""
+
+
 import unittest
 import xmlrpc.client
 
