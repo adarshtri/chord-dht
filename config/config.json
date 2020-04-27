@@ -1,0 +1,8 @@
+{
+  "ip": "10.153.27.37",
+  "advertised_ip": "",
+  "socket_port": 4002,
+  "m_bits": 10,
+  "messaging_protocol": "xmlrpc",
+  "run_as_background": true
+}
