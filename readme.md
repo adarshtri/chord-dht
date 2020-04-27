@@ -6,7 +6,7 @@
 
 ## Code and Module Developers
 
-####Module Developers
+#### Module Developers
 1. chord: Adarsh Trivedi and Ishan Goel
 2. client: Adarsh Trivedi
 3. messaging: Adarsh Trivedi
@@ -16,7 +16,7 @@
 
 #### Important functions developers
 
-#####chord/node.py -- Node class 
+##### chord/node.py -- Node class 
 
 1. join() - Ishan Goel and Adarsh Trivedi
 2. init_finger_table() - Ishan Goel
