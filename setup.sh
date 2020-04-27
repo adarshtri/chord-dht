@@ -6,5 +6,4 @@ sudo firewall-cmd --reload
 sudo yum install git
 git clone https://github.com/adarshtri/chord-dht.git
 cd chord-dht
-git checkout adarsh-dev
 mkdir logs
