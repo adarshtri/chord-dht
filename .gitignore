@@ -5,7 +5,6 @@ utilities/__pycache__/
 constants/__pycache__/
 performance/sample.txt
 logs/
-config1.json
 test/__pycache__/
 test/automated_test/__pycache__/
 test/interactive_test/__pycache__/
