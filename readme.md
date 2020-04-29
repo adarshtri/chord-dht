@@ -514,4 +514,4 @@ Sample Run Example:
     --type nodecount 
     --sample-size 10 --sample-size 25 --sample-size 50 
     --display-performance-output 
-    --plot-performance-outpu
+    --plot-performance-output
