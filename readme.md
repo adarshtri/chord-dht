@@ -29,6 +29,19 @@
 9. Key transfer methods during join and leave- Adarsh Trivedi
 10. Replication methods - Adarsh Trivedi
 
+## Setting up on VCL
+
+- Download the [setup.sh](setup.sh) from the git repo.
+- Run it on VCL node.
+- setup.sh sets up the project on VCL node as well.
+- By default setup.sh opens port 5000 for communication.
+  Use this port for starting chord nodes. If you want to use a different
+  port then you need to open them manually. You can refer to [setup.sh](setup.sh)
+  to do the same.
+- The only step left is to create the configuration file. Important properties
+  to configure are ip, socket_port and log_file (can set it to logs/chord.log) (you will get error if the directory for the log file
+  doesn't exist. Directory path should be relative to project folder ie chord-dht.)
+
 ## Usage Guide
 
 - Clone the [repository](https://github.com/adarshtri/chord-dht.git)

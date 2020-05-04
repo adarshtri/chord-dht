@@ -7,3 +7,4 @@ sudo yum install git
 git clone https://github.com/adarshtri/chord-dht.git
 cd chord-dht
 mkdir logs
+sudo pip3 install -r requirement.txt
